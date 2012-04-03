@@ -267,12 +267,30 @@
         };
     }
 
+    // TODO javadoc
+    function tags(data) {
+        if ($.isFunction(data)) {
+            return data;
+        }
+
+        // if not a function we assume it to be an array
+
+        return function (query) {
+            var t = query.term.toUpperCase(), filtered = {results: []};
+            $(data).each(function () {
+                if (t === "" || this.toUpperCase().indexOf(t) >= 0) { filtered.results.push({id: this, text: this}); }
+            });
+            console.log(filtered);
+            query.callback(filtered);
+        }
+    }
+
     // exports
     window.Select2 = {query: {}, util: {}};
     window.Select2.util.debounce = debounce;
     window.Select2.query.ajax = ajax;
     window.Select2.query.local = local;
-
+    window.Select2.query.tags = tags;
     /**
      * blurs any Select2 container that has focus when an element outside them was clicked or received focus
      */
@@ -416,6 +434,9 @@
                     opts.query = ajax(opts.ajax);
                 } else if ("data" in opts) {
                     opts.query = local(opts.data);
+                } else if ("tags" in opts) {
+                    opts.query = tags(opts.tags);
+                    opts.createSearchChoice = function (term) { return {id: term, text: term};}
                 }
             }
         }
@@ -1240,6 +1261,7 @@
                     multiple = opts.element.attr("multiple");
                 } else {
                     multiple = opts.multiple || false;
+                    if ("tags" in opts) {opts.multiple = multiple = true;}
                 }
 
                 select2 = multiple ? new MultiSelect2() : new SingleSelect2();
