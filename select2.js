@@ -597,7 +597,21 @@
 
         this.resultsPage = 1;
         opts.query({term: search.val(), page: this.resultsPage, callback: this.bind(function (data) {
-            var parts = []; // html parts
+            var parts = [], // html parts
+                def; // default choice
+
+            // create a default choice and prepend it to the list
+            if (this.opts.createSearchChoice && search.val() !== "") {
+                def = this.opts.createSearchChoice.call(null, search.val(), data.results);
+                if (def !== undefined && def !== null && def.id !== undefined && def.id != null) {
+                    if ($(data.results).filter(
+                        function () {
+                            return equal(this.id, def.id);
+                        }).length === 0) {
+                        data.results.unshift(def);
+                    }
+                }
+            }
 
             if (data.results.length === 0) {
                 render("<li class='select2-no-results'>" + opts.formatNoMatches(search.val()) + "</li>");
